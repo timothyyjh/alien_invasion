@@ -1,5 +1,6 @@
 import sys		# To exit the game when the player quits
-import pygame	# To allow game functionalities
+import pygame
+from pygame.constants import KEYDOWN	# To allow game functionalities
 from settings import Settings # To use the settings from another module.
 from ship import Ship
 
@@ -29,17 +30,39 @@ class AlienInvasion:
 	def run_game(self):
 		"""Start the main loop for the game."""
 		while True:
-			# Watches for keyboard and mouse events.
-			for event in pygame.event.get():
-				if event.type == pygame.QUIT:
-					sys.exit()
+			self._check_events()
+			self._update_screen()
+			self.ship.update()
 
-			# To retrieve the latest screen update everytime this while loop
-			# is run through.
-			pygame.display.flip()
-
-			self.screen.fill(self.bg_color)
+			self.screen.fill(self.settings.bg_color)
 			self.ship.blitme() # This is to draw the ship onto the screen.
+
+	def _check_events(self):
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				sys.exit()
+			elif event.type == pygame.KEYDOWN:
+				self._check_keydown_events(event)
+			elif event.type == pygame.KEYUP:
+				self._check_keyup_events(event)
+			
+# We can use elif because it's "FOR EVENT", so it's constantly checking.
+	def _check_keydown_events(self, event):
+		if event.key == pygame.K_RIGHT:
+			self.ship.moving_right = True
+		elif event.key == pygame.K_LEFT:
+			self.ship.moving_left = True
+		elif event.key == pygame.K_q:
+			sys.exit()
+
+	def _check_keyup_events(self, event):
+		if event.key == pygame.K_RIGHT:
+			self.ship.moving_right = False
+		elif event.key == pygame.K_LEFT:
+			self.ship.moving_left = False
+
+	def _update_screen(self):		
+		pygame.display.flip()
 
 if __name__ == '__main__':
 	# Makes a game instance and runs the game.
