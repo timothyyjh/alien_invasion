@@ -4,6 +4,7 @@ from pygame.constants import KEYDOWN	# To allow game functionalities
 from settings import Settings # To use the settings from another module.
 from ship import Ship
 from bullet import Bullet
+from alien import Alien
 
 class AlienInvasion:
 	"""Overall class to manage game assets and behavior."""
@@ -29,6 +30,9 @@ class AlienInvasion:
 		# the screen property.
 		self.ship = Ship(self)
 		self.bullets = pygame.sprite.Group()
+		self.aliens = pygame.sprite.Group()
+
+		self._create_fleet()
 
 	def run_game(self):
 		"""Start the main loop for the game."""
@@ -37,10 +41,8 @@ class AlienInvasion:
 			self._update_screen()
 			self.ship.update()
 			self.bullets.update()
-
-			self.screen.fill(self.settings.bg_color)
-			self.ship.blitme() # This is to draw the ship onto the screen.
-
+			self._update_bullets()
+		
 	# Methods/functions that start with an underscore are helper functions.
 	def _check_events(self):
 		for event in pygame.event.get():
@@ -60,7 +62,7 @@ class AlienInvasion:
 		elif event.key == pygame.K_q:
 			sys.exit()
 		elif event.key == pygame.K_SPACE:
-			self.fire_bullet()
+			self._fire_bullet()
 
 	def _check_keyup_events(self, event):
 		if event.key == pygame.K_RIGHT:
@@ -68,13 +70,34 @@ class AlienInvasion:
 		elif event.key == pygame.K_LEFT:
 			self.ship.moving_left = False
 
-	def fire_bullet(self):
+	def _fire_bullet(self):
 		"""Creates a new default bullet and add it to the bullets group."""
-		new_bullet = Bullet(self)
-		self.bullets.add(new_bullet)
+		if len(self.bullets) < self.settings.bullets_allowed:
+			new_bullet = Bullet(self)
+			self.bullets.add(new_bullet)
 
 	def _update_screen(self):		
 		pygame.display.flip()
+		self.screen.fill(self.settings.bg_color)
+		self.ship.blitme() # This is to draw the ship onto the screen.
+
+		for bullet in self.bullets.sprites():
+			bullet.draw_bullet()
+		self.aliens.draw(self.screen)
+
+	def _update_bullets(self):
+		# To get rid of bullets that have disappeared so they don't consume
+		# memory.
+		for bullet in self.bullets.copy():
+			# This means the bullet has passed the top of the screen
+			if bullet.rect.bottom <= 0: 
+				self.bullets.remove(bullet)
+
+	def _create_fleet(self):
+		"""CREATE A FLEET OF ALIENS"""
+		# MAKE AN ALIEN
+		alien = Alien(self)
+		self.aliens.add(alien)
 
 if __name__ == '__main__':
 	# Makes a game instance and runs the game.
